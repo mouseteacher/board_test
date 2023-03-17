@@ -1,18 +1,20 @@
+buildscript {
+    ext {
+        queryDslVersion = "5.0.0"
+    }
+}
 plugins {
     id 'java'
     id 'org.springframework.boot' version '2.7.8'
     id 'io.spring.dependency-management' version '1.0.15.RELEASE'
+    id "com.ewerk.gradle.plugins.querydsl" version "1.0.10"
 }
 
 group = 'com.wak.chimplanet'
 version = '0.0.1-SNAPSHOT'
 sourceCompatibility = '11'
 
-configurations {
-    compileOnly {
-        extendsFrom annotationProcessor
-    }
-}
+
 
 repositories {
     mavenCentral()
@@ -44,9 +46,37 @@ dependencies {
     annotationProcessor 'org.projectlombok:lombok'
     testImplementation 'org.springframework.boot:spring-boot-starter-test'
     //JUnit4 추가
-    testImplementation("org.junit.vintage:junit-vintage-engine") {
-        exclude group: "org.hamcrest", module: "hamcrest-core"
+//    testImplementation("org.junit.vintage:junit-vintage-engine") {
+//        exclude group: "org.hamcrest", module: "hamcrest-core"
+//    }
+
+    testImplementation("org.junit.platform:junit-platform-launcher:1.5.2")
+    testImplementation("org.junit.jupiter:junit-jupiter:5.5.2")
+
+    // querydsl
+    implementation "com.querydsl:querydsl-jpa:${queryDslVersion}"
+    implementation "com.querydsl:querydsl-apt:${queryDslVersion}"
+}
+// querydsl
+def querydslDir = "$buildDir/generated/querydsl"
+
+querydsl { //querydsl
+    jpa = true
+    querydslSourcesDir = querydslDir
+}
+
+sourceSets { //querydsl
+    main.java.srcDir querydslDir
+}
+
+configurations {
+    compileOnly {
+        extendsFrom annotationProcessor
     }
+    querydsl.extendsFrom compileClasspath
+}
+compileQuerydsl { // querydsl
+    options.annotationProcessorPath = configurations.querydsl
 }
 
 tasks.named('test') {
